@@ -11,7 +11,7 @@ public class QueueItemReader<T> implements ItemReader<T> {
     private Queue<T> queue;
 
     public QueueItemReader(List<T> data) {
-        this.queue = new LinkedList<>();
+        this.queue = new LinkedList<>(data);
     }
 
     @Override

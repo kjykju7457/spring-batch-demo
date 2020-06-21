@@ -2,6 +2,7 @@ package batch.repository;
 
 
 import batch.domain.User;
+import batch.domain.enums.Grade;
 import batch.domain.enums.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -17,4 +18,5 @@ import java.util.List;
 @Transactional
 public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByUpdatedDateBeforeAndStatusEquals(LocalDateTime localDateTime, UserStatus status);
+    List<User> findByUpdatedDateBeforeAndStatusEqualsAndGradeEquals(LocalDateTime localDateTime, UserStatus status, Grade grade);
 }
