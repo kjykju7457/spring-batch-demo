@@ -46,18 +46,32 @@ import java.util.Map;
 public class InactiveUserJobConfig {
     private final static int CHUNK_SIZE = 5;
 
-    private final EntityManagerFactory entityManagerFactory;
-
     private final UserRepository userRepository;
 
-//    @Bean
-//    public Job inactiveUserJob(JobBuilderFactory jobBuilderFactory, InactiveIJobListener inactiveIJobListener, Step inactiveJobStep) {
-//        return jobBuilderFactory.get("inactiveUserJob")
-//                .preventRestart()
-//                .listener(inactiveIJobListener)
-//                .start(inactiveJobStep)
-//                .build();
-//    }
+    private final JobBuilderFactory jobBuilderFactory;
+
+    private final StepBuilderFactory stepBuilderFactory;
+
+
+    @Bean
+    public Step inactiveJobStep() {
+        return stepBuilderFactory.get("inactiveUserStep")
+                .<User, User> chunk(CHUNK_SIZE)
+                .reader(inactiveUserReader())
+                .processor(inactiveUserProcessor())
+                .writer(inactiveUserWriter())
+                .build();
+    }
+
+    @Bean
+    public Job inactiveUserJob() {
+        return jobBuilderFactory.get("inactiveUserJob")
+                .start(inactiveJobStep())
+                .build();
+    }
+
+
+
 
 //    @Bean
 //    public Job inactiveUserJob(JobBuilderFactory jobBuilderFactory, InactiveIJobListener inactiveJobListener, Step inactiveJobStep) {
@@ -69,40 +83,25 @@ public class InactiveUserJobConfig {
 //    }
 
 
-    @Bean
-    public Job inactiveUserJob(JobBuilderFactory jobBuilderFactory, InactiveIJobListener inactiveJobListener, Step partitionerStep) {
-        return jobBuilderFactory.get("inactiveUserJob")
-                .preventRestart()
-                .listener(inactiveJobListener)
-                .start(partitionerStep)
-                .build();
-    }
-
-    @Bean
-    @JobScope
-    public Step partitionerStep(StepBuilderFactory stepBuilderFactory, Step inactiveJobStep) {
-        return stepBuilderFactory.get("partitionerStep")
-                .partitioner("partitionerStep", new InactivePartitioner())
-                .gridSize(5)
-                .step(inactiveJobStep)
-                .taskExecutor(taskExecutor())
-                .build();
-    }
-
-
-    @Bean
-    public Step inactiveJobStep(StepBuilderFactory stepBuilderFactory, ListItemReader<User> inactiveUserReader, InactiveChunkListener inactiveChunkListener, InativeStepListener inativeStepListener, TaskExecutor taskExecutor) {
-        return stepBuilderFactory.get("inactiveUserStep")
-                .<User, User> chunk(CHUNK_SIZE)
-                .reader(inactiveUserReader)
-                .processor(inactiveUserProcessor())
-                .writer(inactiveUserWriter())
-                .listener(inactiveChunkListener)
-                .listener(inativeStepListener)
-                //.taskExecutor(taskExecutor)
-                //.throttleLimit(2)
-                .build();
-    }
+//    @Bean
+//    public Job inactiveUserJob(JobBuilderFactory jobBuilderFactory, InactiveIJobListener inactiveJobListener, Step partitionerStep) {
+//        return jobBuilderFactory.get("inactiveUserJob")
+//                .preventRestart()
+//                .listener(inactiveJobListener)
+//                .start(partitionerStep)
+//                .build();
+//    }
+//
+//    @Bean
+//    @JobScope
+//    public Step partitionerStep(StepBuilderFactory stepBuilderFactory, Step inactiveJobStep) {
+//        return stepBuilderFactory.get("partitionerStep")
+//                .partitioner("partitionerStep", new InactivePartitioner())
+//                .gridSize(5)
+//                .step(inactiveJobStep)
+//                .taskExecutor(taskExecutor())
+//                .build();
+//    }
 
 
 
@@ -141,23 +140,23 @@ public class InactiveUserJobConfig {
 //        return new ListItemReader<>(inactiveUsers);
 //    }
 
-    @Bean
-    @StepScope
-    public ListItemReader<User> inactiveUserReader(@Value("#{stepExecutionContext[grade]}") String grade, UserRepository userRepository) {
-        log.info(Thread.currentThread().getName());
-        List<User> inactiveUsers = userRepository.findByUpdatedDateBeforeAndStatusEqualsAndGradeEquals(LocalDateTime.now().minusYears(1),UserStatus.ACTIVE, Grade.valueOf(grade));
-        return new ListItemReader<>(inactiveUsers);
-    }
-
-
 //    @Bean
 //    @StepScope
-//    public QueueItemReader<User> inactiveUserReader() {
-//        //LocalDateTime now = LocalDateTime.ofInstant(nowDate.toInstant(), ZoneId.systemDefault());
-//        List<User> inactiveUsers = userRepository.findByUpdatedDateBeforeAndStatusEquals(LocalDateTime.now().minusYears(1), UserStatus.ACTIVE);
-//        //return new ListItemReader<>(inactiveUsers);
-//        return new QueueItemReader<>(inactiveUsers);
+//    public ListItemReader<User> inactiveUserReader(@Value("#{stepExecutionContext[grade]}") String grade, UserRepository userRepository) {
+//        log.info(Thread.currentThread().getName());
+//        List<User> inactiveUsers = userRepository.findByUpdatedDateBeforeAndStatusEqualsAndGradeEquals(LocalDateTime.now().minusYears(1),UserStatus.ACTIVE, Grade.valueOf(grade));
+//        return new ListItemReader<>(inactiveUsers);
 //    }
+
+
+    @Bean
+    @StepScope
+    public QueueItemReader<User> inactiveUserReader() {
+        //LocalDateTime now = LocalDateTime.ofInstant(nowDate.toInstant(), ZoneId.systemDefault());
+        List<User> inactiveUsers = userRepository.findByUpdatedDateBeforeAndStatusEquals(LocalDateTime.now().minusYears(1), UserStatus.ACTIVE);
+        //return new ListItemReader<>(inactiveUsers);
+        return new QueueItemReader<>(inactiveUsers);
+    }
 
 //    @Bean
 //    @StepScope

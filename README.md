@@ -14,31 +14,61 @@
 
 
 - Job
-  > 배치 처리 과정을 하나의 단
+  > 배치 처리 과정을 하나의 단위로 만들어 표현한 객체
+  
+   - job 선언 예제  
 
   - ```
-    public CompletableFuture<Double> getPriceAsync(Shop shop, String product) {
-            CompletableFuture<Double> futurePrice = new CompletableFuture<>();
-            new Thread(() -> {
-                try {
-                    double price = shop.calculatePrice(product);
-                    futurePrice.complete(price);
-                } catch (Exception ex) {
-                    futurePrice.completeExceptionally(ex);
-                }
+    @Configuration
+    @RequiredArgsConstructor
+    @ComponentScan("batch")
+    @Slf4j
+    public class InactiveUserJobConfig {
+        private final static int CHUNK_SIZE = 5;
     
-            }).start();
-            return futurePrice;
+        private final UserRepository userRepository;
+    
+        private final JobBuilderFactory jobBuilderFactory;
+    
+        private final StepBuilderFactory stepBuilderFactory;
+    
+        @Bean
+        public Job inactiveUserJob() {
+            return jobBuilderFactory.get("inactiveUserJob")
+                    .start(inactiveJobStep())
+                    .build();
         }
     ```
 
-  - 아래와 같이 간결하게 표현 가능 
-
-  - ```
-    public Future<Double> getPriceAsyncWithLambda(Shop shop, String product) {
-       return CompletableFuture.supplyAsync(() -> shop.calculatePrice(product));
-    }
-    ```
+- Step
+ > Job을 처리하는 단위. 모든 Job에는 1개 이상의 Step이 있음
+   
+   - step 선언 예제
+   
+ 
+      - ```
+      
+        public class InactiveUserJobConfig {
+            private final static int CHUNK_SIZE = 5;
+        
+            private final UserRepository userRepository;
+        
+            private final JobBuilderFactory jobBuilderFactory;
+        
+            private final StepBuilderFactory stepBuilderFactory;
+        
+        
+            @Bean
+            public Step inactiveJobStep() {
+                return stepBuilderFactory.get("inactiveUserStep")
+                        .<User, User> chunk(CHUNK_SIZE)
+                        .reader(inactiveUserReader())
+                        .processor(inactiveUserProcessor())
+                        .writer(inactiveUserWriter())
+                        .build();
+            }
+        ```
+- CHUNK_SIZE :  Reader & Writer가 묶일 Chunk 트랜잭션 범위
 
 
 #### thenCombine, thenAccept, thenApply, thenCompose
