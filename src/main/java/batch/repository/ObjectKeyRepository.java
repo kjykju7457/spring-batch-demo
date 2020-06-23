@@ -1,0 +1,15 @@
+package batch.repository;
+
+
+import batch.domain.ObjectKeyInfo;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import javax.transaction.Transactional;
+import java.util.List;
+
+@Repository
+@Transactional
+public interface ObjectKeyRepository extends JpaRepository<ObjectKeyInfo, Long> {
+    List<ObjectKeyInfo> findAll();
+}

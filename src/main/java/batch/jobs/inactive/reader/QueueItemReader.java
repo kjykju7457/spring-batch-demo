@@ -1,4 +1,4 @@
-package batch.jobs.inactive.listener.reader;
+package batch.jobs.inactive.reader;
 
 import org.springframework.batch.item.ItemReader;
 
@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Queue;
 
 public class QueueItemReader<T> implements ItemReader<T> {
-
     private Queue<T> queue;
 
     public QueueItemReader(List<T> data) {

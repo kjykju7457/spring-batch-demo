@@ -11,8 +11,6 @@
 ![batch_relation](./image/batch_relation.png)
 
 
-
-
 - Job
   > 배치 처리 과정을 하나의 단위로 만들어 표현한 객체
   
@@ -46,8 +44,7 @@
    - step 선언 예제
    
  
-      - ```
-      
+     ```
         public class InactiveUserJobConfig {
             private final static int CHUNK_SIZE = 5;
         
@@ -71,7 +68,7 @@
 - CHUNK_SIZE :  Reader & Writer가 묶일 Chunk 트랜잭션 범위
 
 
-#### thenCombine, thenAccept, thenApply, thenCompose
+#### Reader, Processor, Writer 
 
 
 

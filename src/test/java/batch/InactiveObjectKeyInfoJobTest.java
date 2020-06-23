@@ -2,12 +2,11 @@ package batch;
 
 import batch.domain.enums.UserStatus;
 import batch.jobs.inactive.InactiveUserJobConfig;
-import batch.repository.UserRepository;
+import batch.repository.ObjectKeyRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
@@ -23,13 +22,13 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes={InactiveUserJobConfig.class})
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
-public class InactiveUserJobTest {
+public class InactiveObjectKeyInfoJobTest {
 
 	@Autowired
 	private JobLauncherTestUtils jobLauncherTestUtils;
 
 	@Autowired
-	private UserRepository userRepository;
+	private ObjectKeyRepository objectKeyRepository;
 
 	@Test
 	public void 휴면_회원_전환_테스트() throws Exception {
@@ -42,7 +41,6 @@ public class InactiveUserJobTest {
 		);
 
 		assertEquals(BatchStatus.COMPLETED, jobExecution.getStatus());
-		assertEquals(11, userRepository.findAll().size());
-		assertEquals(0, userRepository.findByUpdatedDateBeforeAndStatusEquals(LocalDateTime.now().minusYears(1), UserStatus.ACTIVE).size());
+		assertEquals(35, objectKeyRepository.findAll().size());
 	}
 }
