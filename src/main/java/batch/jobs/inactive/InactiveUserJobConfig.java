@@ -9,6 +9,8 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -16,6 +18,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.List;
 
 
@@ -28,6 +32,8 @@ public class InactiveUserJobConfig {
 
     private final ObjectKeyRepository objectKeyRepository;
 
+    private final EntityManagerFactory entityManagerFactory;
+
     private final JobBuilderFactory jobBuilderFactory;
 
     private final StepBuilderFactory stepBuilderFactory;
@@ -37,7 +43,7 @@ public class InactiveUserJobConfig {
     public Step inactiveJobStep() {
         return stepBuilderFactory.get("inactiveUserStep")
                 .<ObjectKeyInfo, ObjectKeyInfo> chunk(CHUNK_SIZE)
-                .reader(inactiveUserReader())
+                .reader(jpaPagingItemReader())
                 .processor(inactiveUserProcessor())
                 .writer(inactiveUserWriter())
                 .build();
@@ -127,13 +133,22 @@ public class InactiveUserJobConfig {
 //    }
 
 
+//    @Bean
+//    public ListItemReader<ObjectKeyInfo> objectKeyReader() {
+//        List<ObjectKeyInfo> objectKeyInfos = objectKeyRepository.findAll();
+//        return new ListItemReader<>(objectKeyInfos);
+//    }
+
     @Bean
-    public ListItemReader<ObjectKeyInfo> inactiveUserReader() {
-        //LocalDateTime now = LocalDateTime.ofInstant(nowDate.toInstant(), ZoneId.systemDefault());
-        List<ObjectKeyInfo> inactiveObjectKeyInfos = objectKeyRepository.findAll();
-        //return new ListItemReader<>(inactiveUsers);
-        return new ListItemReader<>(inactiveObjectKeyInfos);
+    public JpaPagingItemReader<ObjectKeyInfo> jpaPagingItemReader() {
+        return new JpaPagingItemReaderBuilder<ObjectKeyInfo>()
+                .name("jpaPagingItemReader")
+                .entityManagerFactory(entityManagerFactory)
+                .pageSize(CHUNK_SIZE)
+                .queryString("select * from object_key_info")
+                .build();
     }
+
 
 //    @Bean
 //    @StepScope
@@ -142,29 +157,7 @@ public class InactiveUserJobConfig {
 //                userRepository.findByUpdatedDateBeforeAndStatusEquals(LocalDateTime.now().minusYears(1), UserStatus.ACTIVE);
 //        return new ListItemReader<>(oldUsers);
 //    }
-
-//    @Bean(destroyMethod="")
-//    @StepScope
-//    public JpaPagingItemReader<User> inactiveUserJpaReader() {
-//        JpaPagingItemReader<User> jpaPagingItemReader = new JpaPagingItemReader(){
-//            @Override
-//            public int getPage(){
-//                return 0;
-//            }
-//        };
-//        jpaPagingItemReader.setQueryString("select u from User as u where u.createdDate < :createdDate and u.status = :status");
-//
-//        LocalDateTime now = LocalDateTime.now();
-//        Map<String, Object> map = new HashMap<>();
-//        //LocalDateTime now = LocalDateTime.ofInstant(nowDate.toInstant(), ZoneId.systemDefault());
-//        map.put("createdDate", now.minusYears(1));
-//        map.put("status", UserStatus.ACTIVE);
-//
-//        jpaPagingItemReader.setParameterValues(map);
-//        jpaPagingItemReader.setEntityManagerFactory(entityManagerFactory);
-//        jpaPagingItemReader.setPageSize(15);
-//        return jpaPagingItemReader;
-//    }
+    
 
     private InactiveItemProcessor inactiveUserProcessor() {
         return new InactiveItemProcessor();

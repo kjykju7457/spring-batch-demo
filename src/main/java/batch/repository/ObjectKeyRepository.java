@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 @Transactional
-public interface ObjectKeyRepository extends JpaRepository<ObjectKeyInfo, Long> {
+public interface ObjectKeyRepository extends JpaRepository<ObjectKeyInfo, String> {
     List<ObjectKeyInfo> findAll();
 }
