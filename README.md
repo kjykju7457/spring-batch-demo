@@ -10,6 +10,12 @@
 
 ![batch_relation](./image/batch_relation.png)
 
+### Job
+ > 배치 처리 과정을 하나의 단위로 만들어 표현한 객체
+
+### Step
+ > Job을 처리하는 단위. 모든 Job에는 1개 이상의 Step이 있음
+
 ### pom.xml 의존성 설정
   ```
         <dependency>
@@ -37,8 +43,6 @@
   ```
    
 
-### Job
-  > 배치 처리 과정을 하나의 단위로 만들어 표현한 객체
   
   - job 선언 예제  
 
@@ -63,9 +67,6 @@
                     .build();
         }
     ```
-
-### Step
- > Job을 처리하는 단위. 모든 Job에는 1개 이상의 Step이 있음
    
    - step 선언 예제
    
@@ -97,15 +98,93 @@
 ### Reader, Processor, Writer 
 
 #### Reader
-
+  - DB나 File로부터 데이터를 읽어들이는 역할
   - ItemReader 인터페이스의 구현체
     - JdbcCursorItemReader
     - JdbcPagingItemReader
     - JpaPagingItemReader
     - ListItemReader
      
+     
+- ```
+    @Bean
+    public JpaPagingItemReader<ObjectKeyInfo> jpaPagingItemReader() {
+        return new JpaPagingItemReaderBuilder<ObjectKeyInfo>()
+                .name("jpaPagingItemReader")
+                .entityManagerFactory(entityManagerFactory)
+                .pageSize(CHUNK_SIZE)
+                .queryString("select o from ObjectKeyInfo o")
+                .build();
+    }
+  ```
 
 
+#### Processor
+
+  - reader로부터 읽은 데이터를 가공하거나 필터링하는 역할
+  - ItemProcessor 인터페이스의 구현체
+  - 생략 가능(필수 X)
+  
+- ```  
+  @Component
+  public class ObjectKeyFilterProcessor implements ItemProcessor<ObjectKeyInfo, ObjectKeyInfo> {
+  
+      @Override
+      public ObjectKeyInfo process(ObjectKeyInfo objectKeyInfo) {
+  
+          if (objectKeyInfo.getLastModified().isBefore(LocalDateTime.now().minusYears(1L))) {
+              return null;
+          }
+          return objectKeyInfo;
+      }
+  }
+  ```
+  
+#### Writer
+
+ - reader로부터 읽은 데이터의 출력 기능(DB, File, Console)
+ - Chunk 단위로 데이터 write
+ - ItemWriter 인터페이스의 구현체
+   - JdbcBatchItemWriter
+   - JpaItemWriter
+   - FlatFileItemWriter
+   - Custom ItemWriter
+ 
+- ```  
+      @Bean
+      public FlatFileItemWriter<ObjectKeyInfo> fileWriter() {
+          FlatFileItemWriter<ObjectKeyInfo> writer = new FlatFileItemWriter<>();
+  
+          writer.setResource(outputResource);
+          //writer.setAppendAllowed(true);
+          writer.setLineAggregator(new DelimitedLineAggregator<ObjectKeyInfo>() {
+              {
+                  setDelimiter(",");
+                  setFieldExtractor(new BeanWrapperFieldExtractor<ObjectKeyInfo>() {
+                      {
+                          setNames(new String[] {"objectKey", "lastModified"});
+                      }
+                  });
+              }
+          });
+          return writer;
+      }
+  ```
+  
+### JobParameter
+
+   
+
+### Listener
+
+### step 흐름 제어
+
+### test code
 
 
+### 기타 내용 
+
+  
 ## 참고 자료
+
+ 

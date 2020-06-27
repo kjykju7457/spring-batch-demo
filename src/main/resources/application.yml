@@ -1,13 +1,18 @@
 spring:
+  main:
+    web-environment: false
   datasource:
-    url: jdbc:mysql://localhost:3306/dev
+    url: jdbc:mysql://localhost:3306/dev?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: 1111
-    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    initialization-mode: always
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect
   batch:
-    job:
-      enabled: false
+    initialize-schema: always
