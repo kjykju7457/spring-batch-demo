@@ -1,6 +1,6 @@
 spring:
   main:
-    web-environment: false
+    web-application-type: NONE
   datasource:
     url: jdbc:mysql://localhost:3306/dev?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
     username: root
@@ -15,4 +15,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5Dialect
   batch:
-    initialize-schema: always
+      initialize-schema: always
+      #job:
+       # names: ${job.name:NONE}

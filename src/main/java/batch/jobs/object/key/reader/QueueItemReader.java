@@ -1,4 +1,4 @@
-package batch.jobs.inactive.reader;
+package batch.jobs.object.key.reader;
 
 import org.springframework.batch.item.ItemReader;
 
