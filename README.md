@@ -130,6 +130,7 @@
     - JdbcCursorItemReader
     - JdbcPagingItemReader
     - JpaPagingItemReader
+    - FlatFileItemReader
     - ListItemReader
      
      
