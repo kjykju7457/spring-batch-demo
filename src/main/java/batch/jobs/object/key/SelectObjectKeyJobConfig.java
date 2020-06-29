@@ -85,7 +85,7 @@ public class SelectObjectKeyJobConfig {
                 .reader(jpaPagingItemReader())
                 .processor(objectKeyFilterProcessor)
                 .writer(fileWriter())
-                .listener(objectKeyStepListener)
+                //.listener(objectKeyStepListener)
                 .build();
     }
 

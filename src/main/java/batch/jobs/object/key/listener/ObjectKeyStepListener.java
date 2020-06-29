@@ -20,6 +20,6 @@ public class ObjectKeyStepListener {
     public void afterStep(StepExecution stepExecution) {
         log.info("read count : {}", stepExecution.getReadCount());
         log.info("After Step");
-        //stepExecution.setExitStatus(ExitStatus.COMPLETED);
+        stepExecution.setExitStatus(ExitStatus.COMPLETED);
     }
 }
