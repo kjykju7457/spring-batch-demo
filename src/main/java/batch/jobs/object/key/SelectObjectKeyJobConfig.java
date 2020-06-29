@@ -80,7 +80,7 @@ public class SelectObjectKeyJobConfig {
 
     @Bean
     public Step selectObjectKeyStep() {
-        return stepBuilderFactory.get("selectObjectKeyJobStep")
+        return stepBuilderFactory.get("selectObjectKeyStep")
                 .<ObjectKeyInfo, ObjectKeyInfo> chunk(CHUNK_SIZE)
                 .reader(jpaPagingItemReader())
                 .processor(objectKeyFilterProcessor)

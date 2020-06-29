@@ -50,6 +50,25 @@
       PRIMARY KEY (object_key)
     );
    ```
+ - 
+ ```
+   @Builder
+   @Getter
+   @Entity
+   @AllArgsConstructor
+   @NoArgsConstructor
+   @Table(name = "object_key_info")
+   public class ObjectKeyInfo implements Serializable {
+   
+       @Id
+       @Column(name = "object_key")
+       private String objectKey;
+   
+       @Column(name = "last_modified")
+       private LocalDateTime lastModified;
+   }
+  ```
+   
 ## 배치 컴포넌트 관계도
 
 ![batch_relation](./image/batch_relation.png)
@@ -66,10 +85,7 @@
   
 ### Job
   > 전체 배치 처리에 있어 최상단 계층에 있는 객체, 여러 step들을 명시
-  
-  - job 선언 예제  
 
-  - 
   ```
    @Configuration
    @RequiredArgsConstructor
@@ -106,14 +122,11 @@
 ### Step
  > 실제 Batch 작업을 수행하는 역할 
  >  reader, processor, writer로 이루어짐
-
-   - step 선언 예제
-   
    
    ```  
             @Bean
             public Step selectObjectKeyStep() {
-                return stepBuilderFactory.get("selectObjectKeyJobStep")
+                return stepBuilderFactory.get("selectObjectKeyStep")
                         .<ObjectKeyInfo, ObjectKeyInfo> chunk(CHUNK_SIZE)
                         .reader(jpaPagingItemReader())
                         .processor(objectKeyFilterProcessor)
@@ -123,7 +136,7 @@
    ```
         
   - CHUNK_SIZE : Writer 가 처리하는 트랜잭션 단위(commit interval)
-    - Chunk 단위로 트랜잭션을 수행하기 때문에 실패할 경우엔 해당 Chunk 만큼만 롤백이 되고, 이전에 커밋된 트랜잭션 범위까지는 반영
+    - Writer가 Chunk 단위로 트랜잭션을 수행하기 때문에 실패할 경우엔 해당 Chunk 만큼만 롤백이 되고, 이전에 커밋된 트랜잭션 범위까지는 반영
 
 ### Reader, Processor, Writer 
 
