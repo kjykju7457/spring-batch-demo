@@ -109,7 +109,8 @@
 
    - step 선언 예제
    
-     ```
+   
+   ```  
             @Bean
             public Step selectObjectKeyStep() {
                 return stepBuilderFactory.get("selectObjectKeyJobStep")
@@ -119,7 +120,7 @@
                         .writer(fileWriter())
                         .build();
             }
-    ```
+   ```
         
   - CHUNK_SIZE : Writer 가 처리하는 트랜잭션 단위(commit interval)
     - Chunk 단위로 트랜잭션을 수행하기 때문에 실패할 경우엔 해당 Chunk 만큼만 롤백이 되고, 이전에 커밋된 트랜잭션 범위까지는 반영
