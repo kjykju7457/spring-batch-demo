@@ -169,7 +169,6 @@
   - 생략 가능(필수 X)
   
 - ```  
-  @StepScope
   @Component
   public class ObjectKeyFilterProcessor implements ItemProcessor<ObjectKeyInfo, ObjectKeyInfo> {
   

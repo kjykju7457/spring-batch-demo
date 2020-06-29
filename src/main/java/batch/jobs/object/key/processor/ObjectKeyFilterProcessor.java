@@ -9,17 +9,17 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@StepScope
+//@StepScope
 @Component
 public class ObjectKeyFilterProcessor implements ItemProcessor<ObjectKeyInfo, ObjectKeyInfo> {
 
 
-      @Value("#{jobParameters['month']}")
-      private Long month;
+//      @Value("#{jobParameters['month']}")
+//      private Long month;
 
     @Override
     public ObjectKeyInfo process(ObjectKeyInfo objectKeyInfo) {
-        if (objectKeyInfo.getLastModified().isBefore(LocalDateTime.now().minusMonths(month))) {
+        if (objectKeyInfo.getLastModified().isBefore(LocalDateTime.now().minusMonths(6L))) {
             return null;
         }
         return objectKeyInfo;
