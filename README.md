@@ -43,14 +43,13 @@
 
 ## 시나리오 
  - mysql 테이블에 있는 object key 중에 lastModified 가 최근 N달(month) 이내인 object key 를 추출하는 시나리오
- - ```
+ ```
     CREATE TABLE object_key_info (
       object_key varchar(100) NOT NULL,
       last_modified timestamp NOT NULL,
       PRIMARY KEY (object_key)
     );
    ```
- - 
  ```
    @Builder
    @Getter
