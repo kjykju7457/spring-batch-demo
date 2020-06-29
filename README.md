@@ -219,7 +219,7 @@
 
  - Job이 실행될 때 필요한 파라미터. Map 타입으로 저장
  - 사용 가능한 타입 : Double, Long, Date, String
- - @StepScope 또는 @JobScope로 Bean을 생성해야 함
+ - ItemReader, ItemProcessor, ItemWriter 에 @StepScope 로 Bean을 생성해야 함
 
 ```  
   @StepScope
