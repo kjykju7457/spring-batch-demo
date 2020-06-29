@@ -69,27 +69,39 @@
   
   - job 선언 예제  
 
-  - ```
-    @Configuration
-    @RequiredArgsConstructor
-    @ComponentScan("batch")
-    @Slf4j
-    public class InactiveUserJobConfig {
-        private final static int CHUNK_SIZE = 5;
-    
-        private final ObjectKeyRepository objectKeyRepository;
-    
-        private final JobBuilderFactory jobBuilderFactory;
-    
-        private final StepBuilderFactory stepBuilderFactory;
-    
-        @Bean
-        public Job inactiveUserJob() {
-            return jobBuilderFactory.get("inactiveUserJob")
-                    .start(inactiveJobStep())
-                    .build();
-        }
-    ```
+  - 
+  ```
+   @Configuration
+   @RequiredArgsConstructor
+   @ComponentScan("batch")
+   @Slf4j
+   public class SelectObjectKeyJobConfig {
+       private final static int CHUNK_SIZE = 5;
+   
+       private final ObjectKeyRepository objectKeyRepository;
+   
+       private final EntityManagerFactory entityManagerFactory;
+   
+       private final JobBuilderFactory jobBuilderFactory;
+   
+       private final StepBuilderFactory stepBuilderFactory;
+   
+       private final ObjectKeyFilterProcessor objectKeyFilterProcessor;
+   
+       private final ObjectKeyChunkListener objectKeyChunkListener;
+   
+       private final ObjectKeyStepListener objectKeyStepListener;
+   
+       private Resource outputResource = new FileSystemResource("result.csv");
+   
+       @Bean
+       public Job selectObjectKeyJob() {
+           return jobBuilderFactory.get("selectObjectKeyJob")
+                   .incrementer(new RunIdIncrementer()) //동일 Job Parameter로 계속 실행이 될 수 있게끔
+                   .start(selectObjectKeyStep())
+                   .build();
+       }
+  ``` 
 
 ### Step
  > 실제 Batch 작업을 수행하는 역할 
@@ -98,26 +110,16 @@
    - step 선언 예제
    
      ```
-        public class InactiveUserJobConfig {
-            private final static int CHUNK_SIZE = 5;
-        
-            private final UserRepository userRepository;
-        
-            private final JobBuilderFactory jobBuilderFactory;
-        
-            private final StepBuilderFactory stepBuilderFactory;
-        
-        
             @Bean
-            public Step inactiveJobStep() {
-                return stepBuilderFactory.get("inactiveUserStep")
-                        .<User, User> chunk(CHUNK_SIZE)
-                        .reader(inactiveUserReader())
-                        .processor(inactiveUserProcessor())
-                        .writer(inactiveUserWriter())
+            public Step selectObjectKeyStep() {
+                return stepBuilderFactory.get("selectObjectKeyJobStep")
+                        .<ObjectKeyInfo, ObjectKeyInfo> chunk(CHUNK_SIZE)
+                        .reader(jpaPagingItemReader())
+                        .processor(objectKeyFilterProcessor)
+                        .writer(fileWriter())
                         .build();
             }
-        ```
+    ```
         
   - CHUNK_SIZE : Writer 가 처리하는 트랜잭션 단위(commit interval)
     - Chunk 단위로 트랜잭션을 수행하기 때문에 실패할 경우엔 해당 Chunk 만큼만 롤백이 되고, 이전에 커밋된 트랜잭션 범위까지는 반영

@@ -51,6 +51,14 @@ public class SelectObjectKeyJobConfig {
 
     private Resource outputResource = new FileSystemResource("result.csv");
 
+    @Bean
+    public Job selectObjectKeyJob() {
+        return jobBuilderFactory.get("selectObjectKeyJob")
+                .incrementer(new RunIdIncrementer()) //동일 Job Parameter로 계속 실행이 될 수 있게끔
+                .start(selectObjectKeyStep())
+                .build();
+    }
+
 //    @Bean
 //    public Job selectObjectKeyJob() {
 //        return jobBuilderFactory.get("selectObjectKeyJob")
@@ -69,13 +77,6 @@ public class SelectObjectKeyJobConfig {
 //                .build();
 //    }
 
-    @Bean
-    public Job selectObjectKeyJob() {
-        return jobBuilderFactory.get("selectObjectKeyJob")
-                .incrementer(new RunIdIncrementer()) //동일 Job Parameter로 계속 실행이 될 수 있길
-                .start(selectObjectKeyStep())
-                .build();
-    }
 
     @Bean
     public Step selectObjectKeyStep() {
@@ -84,7 +85,6 @@ public class SelectObjectKeyJobConfig {
                 .reader(jpaPagingItemReader())
                 .processor(objectKeyFilterProcessor)
                 .writer(fileWriter())
-//                .listener(objectKeyStepListener)
                 .build();
     }
 
