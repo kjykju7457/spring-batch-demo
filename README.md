@@ -169,13 +169,13 @@
   - 생략 가능(필수 X)
   
 - ```  
+  @StepScope
   @Component
   public class ObjectKeyFilterProcessor implements ItemProcessor<ObjectKeyInfo, ObjectKeyInfo> {
   
       @Override
       public ObjectKeyInfo process(ObjectKeyInfo objectKeyInfo) {
-  
-          if (objectKeyInfo.getLastModified().isBefore(LocalDateTime.now().minusYears(1L))) {
+          if (objectKeyInfo.getLastModified().isBefore(LocalDateTime.now().minusMonths(6L))) {
               return null;
           }
           return objectKeyInfo;

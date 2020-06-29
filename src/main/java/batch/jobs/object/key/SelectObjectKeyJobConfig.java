@@ -60,8 +60,8 @@ public class SelectObjectKeyJobConfig {
     }
 
 //    @Bean
-//    public Job selectObjectKeyJob() {
-//        return jobBuilderFactory.get("selectObjectKeyJob")
+//    public Job selectObjectKeyJob2() {
+//        return jobBuilderFactory.get("selectObjectKeyJob2")
 //                .incrementer(new RunIdIncrementer())
 //                .start(selectObjectKeyStep())
 //                .on("FAILED") // FAILED 일 경우
@@ -85,6 +85,7 @@ public class SelectObjectKeyJobConfig {
                 .reader(jpaPagingItemReader())
                 .processor(objectKeyFilterProcessor)
                 .writer(fileWriter())
+                .listener(objectKeyStepListener)
                 .build();
     }
 
