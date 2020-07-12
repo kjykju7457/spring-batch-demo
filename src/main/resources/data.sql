@@ -33,3 +33,4 @@ insert into object_key_info (object_key, last_modified) values ('key32' ,'2020-0
 insert into object_key_info (object_key, last_modified) values ('key33' ,'2020-04-01T00:00:00');
 insert into object_key_info (object_key, last_modified) values ('key34' ,'2020-05-01T00:00:00');
 insert into object_key_info (object_key, last_modified) values ('key35' ,'2020-06-01T00:00:00');
+insert into object_key_info (object_key, last_modified) values ('key36' ,'2020-07-01T00:00:00');

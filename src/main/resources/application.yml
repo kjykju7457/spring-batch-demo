@@ -16,5 +16,5 @@ spring:
         dialect: org.hibernate.dialect.MySQL5Dialect
   batch:
       initialize-schema: always
-      #job:
-      #  names: ${job.name:NONE}
+      job:
+        names: ${job.name:NONE}

@@ -8,10 +8,17 @@ import batch.repository.ObjectKeyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
@@ -19,13 +26,18 @@ import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.persistence.EntityManagerFactory;
+import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 @Configuration
@@ -52,9 +64,10 @@ public class SelectObjectKeyJobConfig {
     private Resource outputResource = new FileSystemResource("result.csv");
 
     @Bean
+    //@JobScope
     public Job selectObjectKeyJob() {
         return jobBuilderFactory.get("selectObjectKeyJob")
-                .incrementer(new RunIdIncrementer()) //동일 Job Parameter로 계속 실행이 될 수 있게끔
+                .incrementer(new UniqueRunIdIncrementer()) //동일 Job Parameter로 계속 실행이 될 수 있게끔
                 .start(selectObjectKeyStep())
                 .build();
     }
