@@ -1,5 +1,5 @@
 
-docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=1111 --name mysql_test mysql
+#docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=1111 --name mysql_test mysql
 
 CREATE DATABASE dev DEFAULT CHARACTER SET utf8mb3;
 

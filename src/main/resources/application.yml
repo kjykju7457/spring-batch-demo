@@ -1,10 +1,10 @@
 spring:
-  main:
-    web-application-type: NONE
+  #main:
+  #  web-application-type: NONE
   datasource:
     url: jdbc:mysql://localhost:3306/dev?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
     username: root
-    password: 1111
+    password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
     initialization-mode: always
   jpa:
@@ -18,3 +18,5 @@ spring:
       initialize-schema: always
       job:
         names: ${job.name:NONE}
+broker:
+  url: tcp://localhost:61616
