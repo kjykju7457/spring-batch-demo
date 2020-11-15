@@ -6,6 +6,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.step.item.ChunkProcessor;
 import org.springframework.batch.core.step.item.SimpleChunkProcessor;
 import org.springframework.batch.core.step.tasklet.TaskletStep;
@@ -214,16 +215,11 @@ public class RemoteChunkingConfig {
          * Configure outbound flow (requests going to workers)
          */
         @Bean(name = "request")
-        public QueueChannel request() {
-            return new QueueChannel();
+        public DirectChannel request() {
+            return new DirectChannel();
         }
 
-        @Bean(name = PollerMetadata.DEFAULT_POLLER)
-        public PollerMetadata defaultPoller() {
-            PollerMetadata pollerMetadata = new PollerMetadata();
-            pollerMetadata.setTrigger(new PeriodicTrigger(10));
-            return pollerMetadata;
-        }
+
 
         @Bean(name = "inboundFlow")
         public IntegrationFlow inboundFlow(
