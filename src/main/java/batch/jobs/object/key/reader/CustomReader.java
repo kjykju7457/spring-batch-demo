@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomReader implements ItemReader<Integer> {
 
-    private final int MAX_VALUE = 50000;
+    public static final int MAX_VALUE = 100;
 
-    private int i = 0;
+    public static int i = 0;
 
     @Override
     public Integer read() {
