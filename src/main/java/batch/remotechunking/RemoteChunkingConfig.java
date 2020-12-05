@@ -4,17 +4,15 @@ import batch.jobs.object.key.UniqueRunIdIncrementer;
 import batch.jobs.object.key.listener.RemoteChunkingStepListener;
 import batch.jobs.object.key.reader.CustomReader;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.item.ChunkProcessor;
 import org.springframework.batch.core.step.item.SimpleChunkProcessor;
 import org.springframework.batch.core.step.tasklet.TaskletStep;
-import org.springframework.batch.integration.chunk.ChunkMessageChannelItemWriter;
-import org.springframework.batch.integration.chunk.ChunkProcessorChunkHandler;
-import org.springframework.batch.integration.chunk.RemoteChunkingManagerStepBuilderFactory;
-import org.springframework.batch.integration.chunk.RemoteChunkingWorkerBuilder;
+import org.springframework.batch.integration.chunk.*;
 import org.springframework.batch.integration.config.annotation.EnableBatchIntegration;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
@@ -118,10 +116,13 @@ public class RemoteChunkingConfig {
         private RemoteChunkingManagerStepBuilderFactory remoteChunkingManagerStepBuilderFactory;
 
         @Autowired
-        private CustomReader customReader;
+        private StepBuilderFactory stepBuilderFactory;
 
         @Autowired
-        private RemoteChunkingStepListener remoteChunkingStepListener;
+        private CustomReader customReader;
+
+//        @Autowired
+//        private RemoteChunkingStepListener remoteChunkingStepListener;
 
 
         @Value("${broker.url}")
@@ -176,7 +177,7 @@ public class RemoteChunkingConfig {
         @Bean
         public RepeatTemplate repeatTemplate(){
             RepeatTemplate template = new RepeatTemplate();
-            template.setCompletionPolicy(new SimpleCompletionPolicy(4));
+            template.setCompletionPolicy(new SimpleCompletionPolicy(10));
 
             template.iterate(new RepeatCallback() {
 
@@ -190,28 +191,83 @@ public class RemoteChunkingConfig {
         }
 
         @Bean
-        public TaskletStep managerStep() {
-            return this.remoteChunkingManagerStepBuilderFactory.get("managerStep")
-                    .<Integer, Integer>chunk(5)
-                    .reader(customReader)
-                    .listener(remoteChunkingStepListener)
-                    .stepOperations(repeatTemplate())
-                    .outputChannel(request())
-                    .inputChannel(replies())
-                    .build();
+        public ChunkListener remoteChunkingChunkListener(){
+
+            ChunkMessageChannelItemWriter chunkMessageChannelItemWriter = itemWriter();
+
+            return new ChunkListener() {
+                int chunkCount = 0;
+
+                @Override
+                public void beforeChunk(ChunkContext context) {
+                    System.out.println("before chunk");
+                }
+
+                @Override
+                public void afterChunk(ChunkContext context) {
+                    chunkCount++;
+
+                    if(chunkCount % 10 == 0) {
+                        System.out.println("chunk count : " + chunkCount);
+                        System.out.println("chunk response will be consumed... ");
+                        BatchStatus originalBatchStatus = context.getStepContext().getStepExecution().getStatus();
+                        context.getStepContext().getStepExecution().setStatus(BatchStatus.COMPLETED);
+                        chunkMessageChannelItemWriter.afterStep(context.getStepContext().getStepExecution());
+                        context.getStepContext().getStepExecution().setStatus(originalBatchStatus);
+                    }
+                }
+
+                @Override
+                public void afterChunkError(ChunkContext context) {
+
+                }
+            };
         }
 
+        @Bean
+        public ChunkMessageChannelItemWriter<Integer> itemWriter() {
+            MessagingTemplate messagingTemplate = new MessagingTemplate();
+            messagingTemplate.setDefaultChannel(request());
+            messagingTemplate.setReceiveTimeout(2000);
+            ChunkMessageChannelItemWriter<Integer> chunkMessageChannelItemWriter
+                    = new ChunkMessageChannelItemWriter<>();
+            chunkMessageChannelItemWriter.setThrottleLimit(100);
+            chunkMessageChannelItemWriter.setMaxWaitTimeouts(10000);
+            chunkMessageChannelItemWriter.setMessagingOperations(messagingTemplate);
+            chunkMessageChannelItemWriter.setReplyChannel(replies());
+            return chunkMessageChannelItemWriter;
+        }
+
+//        @Bean
+//        public TaskletStep managerStep() {
+//            return this.remoteChunkingManagerStepBuilderFactory.get("managerStep")
+//                    .<Integer, Integer>chunk(10)
+//                    .reader(customReader)
+//                    .listener(remoteChunkingChunkListener())
+//                    //.stepOperations(repeatTemplate())
+//                    .outputChannel(request())
+//                    .inputChannel(replies())
+//                    .build();
+//        }
+
+        @Bean
+        public TaskletStep managerStep() {
+            return this.stepBuilderFactory.get("managerStep")
+                    .<Integer, Integer>chunk(1)
+                    .reader(customReader)
+                    .writer(itemWriter())
+                    .listener(remoteChunkingChunkListener())
+                    //.stepOperations(repeatTemplate())
+                    //.outputChannel(request())
+                    //.inputChannel(replies())
+                    .build();
+        }
 
         @Bean
         public Job remoteChunkingJob() {
             return this.jobBuilderFactory.get("remoteChunkingJob")
                     .incrementer(new UniqueRunIdIncrementer())
                     .start(managerStep())
-                    .on("CONTINUE")
-                    .to(managerStep())
-                    .on("FINISHED")
-                    .end()
-                    .end()
                     .build();
         }
 
